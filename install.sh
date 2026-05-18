@@ -38,9 +38,43 @@ echo "  Pi: $(pi --version 2>&1 || echo 'installed')"
 
 # ── 4. Set up systemd unit ──────────────────────────────────────
 echo "[4/5] Installing systemd unit..."
+
+# Detect Pi binary location
+PI_BIN=$(which pi 2>/dev/null || echo "")
+PI_DIR=$(dirname "$PI_BIN" 2>/dev/null || echo "")
+if [ -z "$PI_BIN" ]; then
+    echo "  ERROR: pi binary not found — did install fail?"
+    exit 1
+fi
+
+# Write systemd unit with detected paths
 mkdir -p ~/.config/systemd/user
-cp "$PI_WORKER_DIR/pi-worker.service" ~/.config/systemd/user/
+cat > ~/.config/systemd/user/pi-worker.service << UNIT
+[Unit]
+Description=Pi Worker — HTTP endpoint for one-shot Pi agent dispatch
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 $PI_WORKER_DIR/listener.py
+Restart=always
+RestartSec=5
+Environment=PI_WORKER_API_KEY=changeme
+Environment=PI_WORKER_DIR=$PI_WORKER_DIR
+Environment=PI_WORKER_PORT=9090
+Environment=PI_WORKER_TIMEOUT=90
+Environment=PI_WORKER_LOG_LEVEL=INFO
+Environment=HOME=$HOME
+Environment=PATH=$PI_DIR:/usr/bin:/usr/local/bin
+Environment=PI_BINARY=$PI_BIN
+
+[Install]
+WantedBy=default.target
+UNIT
+
 systemctl --user daemon-reload
+echo "  Pi binary: $PI_BIN"
 echo "  Done. Edit ~/.config/systemd/user/pi-worker.service to set PI_WORKER_API_KEY"
 
 # ── 5. Final instructions ───────────────────────────────────────
