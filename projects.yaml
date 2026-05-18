@@ -1,0 +1,24 @@
+# Pi Worker project directory — edit per VPS
+# Maps project names to paths and documentation files Pi should read before working.
+#
+# Format:
+#   project-name:
+#     path: /absolute/path/to/project
+#     docs: [AGENTS.md, README.md]
+#     services: [postgresql, nginx]   # optional — helps Pi know what services exist
+
+ogsapps-portal:
+  path: ~/ogsapps
+  docs: [AGENTS.md, README.md]
+  services: [nginx, cloudflared]
+
+# Example — uncomment and edit for your VPS:
+# geo-api:
+#   path: /opt/data/geo-api
+#   docs: [AGENTS.md, README.md]
+#   services: [postgresql, nginx]
+#
+# ukraine-war-tracker:
+#   path: /opt/data/ukraine-war-tracker
+#   docs: [README.md]
+#   services: [postgresql]

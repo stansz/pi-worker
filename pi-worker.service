@@ -1,0 +1,20 @@
+[Unit]
+Description=Pi Worker — HTTP endpoint for one-shot Pi agent dispatch
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/pi-worker/listener.py
+Restart=always
+RestartSec=5
+Environment=PI_WORKER_API_KEY=changeme
+Environment=PI_WORKER_DIR=%h/pi-worker
+Environment=PI_WORKER_PORT=9090
+Environment=PI_WORKER_TIMEOUT=90
+Environment=PI_WORKER_LOG_LEVEL=INFO
+Environment=HOME=%h
+Environment=PATH=%h/.npm-global/bin:/usr/bin:/usr/local/bin
+
+[Install]
+WantedBy=default.target
