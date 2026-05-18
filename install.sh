@@ -54,12 +54,14 @@ cat > ~/.config/systemd/user/pi-worker.service << UNIT
 Description=Pi Worker — HTTP endpoint for one-shot Pi agent dispatch
 After=network-online.target
 Wants=network-online.target
+StartLimitBurst=50
+StartLimitIntervalSec=60
 
 [Service]
 Type=simple
 ExecStart=/usr/bin/python3 $PI_WORKER_DIR/listener.py
 Restart=always
-RestartSec=5
+RestartSec=2
 Environment=PI_WORKER_API_KEY=changeme
 Environment=PI_WORKER_DIR=$PI_WORKER_DIR
 Environment=PI_WORKER_PORT=9090

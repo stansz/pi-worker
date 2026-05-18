@@ -344,6 +344,16 @@ class WorkerHandler(BaseHTTPRequestHandler):
             self._send_json(400, {"error": "missing 'prompt' field"})
             return
 
+        # Guard: reject prompts that would kill/restart this listener
+        lower = prompt.lower()
+        blocked = ["restart pi-worker", "stop pi-worker", "kill pi-worker",
+                   "systemctl restart pi-worker", "systemctl stop pi-worker",
+                   "systemctl kill pi-worker", "disable pi-worker"]
+        for phrase in blocked:
+            if phrase in lower:
+                self._send_json(400, {"error": f"blocked: prompt would modify pi-worker itself"})
+                return
+
         projects = body.get("projects", [])
 
         log("INFO", f"RUN projects={projects} prompt={prompt[:100]}")
