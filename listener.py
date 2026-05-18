@@ -63,7 +63,12 @@ def auto_discover_projects():
             # Check for AGENTS.md or README.md
             agents = subdir / "AGENTS.md"
             readme = subdir / "README.md"
-            if agents.exists() or readme.exists():
+            try:
+                has_agents = agents.exists()
+                has_readme = readme.exists()
+            except PermissionError:
+                continue
+            if has_agents or has_readme:
                 docs = []
                 if agents.exists():
                     docs.append("AGENTS.md")
