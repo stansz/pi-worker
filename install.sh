@@ -33,6 +33,12 @@ echo "  Node: $(node --version)"
 echo "[3/5] Installing Pi @ ${PI_VERSION}..."
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+# Ensure npm global installs go to user-writable location
+mkdir -p ~/.npm-global
+npm config set prefix ~/.npm-global
+export PATH="$HOME/.npm-global/bin:$PATH"
+
 npm install -g "@mariozechner/pi-coding-agent@${PI_VERSION}"
 echo "  Pi: $(pi --version 2>&1 || echo 'installed')"
 
@@ -77,22 +83,25 @@ UNIT
 
 systemctl --user daemon-reload
 echo "  Pi binary: $PI_BIN"
-echo "  Done. Edit ~/.config/systemd/user/pi-worker.service to set PI_WORKER_API_KEY"
 
-# ── 5. Final instructions ───────────────────────────────────────
+# Generate API key if not set
+if grep -q 'PI_WORKER_API_KEY=changeme' ~/.config/systemd/user/pi-worker.service 2>/dev/null; then
+    NEW_KEY=$(openssl rand -hex 32)
+    sed -i "s/PI_WORKER_API_KEY=changeme/PI_WORKER_API_KEY=$NEW_KEY/" ~/.config/systemd/user/pi-worker.service
+    systemctl --user daemon-reload
+    echo "  API key: $NEW_KEY"
+fi
+
+# Enable and start
+systemctl --user enable --now pi-worker
+
+# ── 5. Verify ─────────────────────────────────────────────────────
 echo ""
 echo "=== pi-worker installed ==="
-echo ""
-echo "Next steps:"
-echo "  1. Edit ~/pi-worker/projects.yaml — list your project paths"
-echo "  2. Generate an API key:    openssl rand -hex 32"
-echo "  3. Set it in the systemd unit:"
-echo "     systemctl --user edit pi-worker"
-echo "     (add Environment=PI_WORKER_API_KEY=your-key)"
-echo "  4. Enable and start:"
-echo "     systemctl --user enable --now pi-worker"
-echo "  5. Test:"
-echo "     curl -s http://localhost:9090/health"
-echo "  6. Expose via Cloudflare Tunnel (Zero Trust dashboard)"
-echo ""
-echo "Done."
+sleep 1
+STATUS=$(systemctl --user is-active pi-worker 2>&1 || true)
+echo "Status: $STATUS"
+if [ "$STATUS" = "active" ]; then
+    HEALTH=$(curl -s http://localhost:9090/health 2>&1 || echo "unreachable")
+    echo "Health:  $HEALTH"
+fi
