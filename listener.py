@@ -13,8 +13,10 @@ GET /health — liveness check.
 import json
 import os
 import signal
+import socketserver
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -358,9 +360,13 @@ def main():
     log("INFO", f"Log file: {LOG_FILE}")
 
     server = HTTPServer(("127.0.0.1", PORT), WorkerHandler)
+    server.timeout = 1  # poll every 1s so signals are handled
+
+    shutdown_flag = threading.Event()
 
     def shutdown(sig, frame):
         log("INFO", "Shutting down")
+        shutdown_flag.set()
         server.shutdown()
 
     signal.signal(signal.SIGTERM, shutdown)

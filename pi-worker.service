@@ -8,13 +8,13 @@ Type=simple
 ExecStart=/usr/bin/python3 %h/pi-worker/listener.py
 Restart=always
 RestartSec=5
-Environment=PI_WORKER_API_KEY=changeme
+Environment=PI_WORKER_API_KEY=ddb21ee7b787edb3730263ffc5195e440ed3ac542b23881568e8d8074b310ead
 Environment=PI_WORKER_DIR=%h/pi-worker
 Environment=PI_WORKER_PORT=9090
 Environment=PI_WORKER_TIMEOUT=90
 Environment=PI_WORKER_LOG_LEVEL=INFO
 Environment=HOME=%h
-Environment=PATH=%h/.npm-global/bin:/usr/bin:/usr/local/bin
+Environment=PATH=/home/ubuntu/.nvm/versions/node/v25.8.2/bin:%h/.npm-global/bin:/usr/bin:/usr/local/bin
 
 [Install]
 WantedBy=default.target
